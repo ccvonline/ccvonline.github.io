@@ -3,6 +3,7 @@ layout: post
 title:  "Xamarin Bindings"
 date:   2020-03-02 10:29:05 -0700
 categories: xamarin bindings c# ios android
+visible: 0
 ---
 # The Project
 I work as a software engineer at a church and we have a Mobile App for both Android and iOS, written in C# on the Xamarin platform. We have a growing population of native Spanish speakers, and decided we wanted to offer real time Spanish translation to our members, integrated into the Mobile App.
