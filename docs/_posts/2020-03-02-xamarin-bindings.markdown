@@ -3,7 +3,7 @@ layout: post
 title:  "Xamarin Bindings"
 date:   2020-03-02 10:29:05 -0700
 categories: xamarin bindings c# ios android
-visible: 0
+visible: 1
 ---
 # The Project
 I work as a software engineer at a church where we have a growing population of native Spanish speakers. Recently, we decided it would be nice to offer a live Spanish translation of our service for those that either didn't speak English or simply preferred to listen in Spanish.
