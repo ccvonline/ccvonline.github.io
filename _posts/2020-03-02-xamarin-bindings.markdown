@@ -8,9 +8,11 @@ visible: 1
 # The Project
 I work as a software engineer at a church where we have a growing population of native Spanish speakers. Recently, we decided it would be nice to offer a live Spanish translation of our service for those that either didn't speak English or simply preferred to listen in Spanish.
 
-Since we have a Mobile App for both Android and iOS, we wanted to take advantage of that and allow people who wanted to listen to access it through our app. We would have a translator speaking into a device that broadcasts on our public Wifi network, and users would launch our Mobile App, connect to our Wifi and listen to the stream in real time.
+Since we have a Mobile App for both Android and iOS, we wanted to take advantage of that and allow people who wanted to listen to access it through our app. We would have a translator speaking into a device that broadcasts on our public Wifi network, users would launch our Mobile App, connect to our Wifi and listen to the stream in real time.
 
 After R&Ding several solutions, we settled on a device from a company named [AudioFetch](https://www.audiofetch.com/). The hardware was reliable and they offered an SDK in the form of native iOS and Android libraries you link in and use. Perfect!
+
+Our Mobile App is written in C# on the Xamarin platform, so I wasn't able to directly link in the native libraries provided by AudioFetch. Instead you have to link in DLLs that "bind" or "wrap" the native library with C#. This means that anytime you need to include a 3rd party library in Xamarin, you first look in NuGet and hope someone else already did the work of creating a C# binding for the library. If one doesn't exist, you're left with creating the bindings yourself.
 
 So this project began with two files and a straight forward task. Take `libAudioFetchSDK.a` and `afaudiolib.aar` and come out with `AudioFetchiOS.dll` and `AudioFetchDroid.dll`. On paper, this simply requires using Visual Studio to create C# bindings for both iOS and Android respectively. They already have the project templates for this, so what could be simpler?
 
@@ -132,7 +134,7 @@ I hit rebuild and waited... 5 errors.
 
 The Android Binder works in a two step process. The first step parses the libraries flagged for parsing (in this case just `afaudiolib.aar`) and creates matching C# wrapper classes for them. The second step compiles the generated C# code and links it into a DLL. If you get compiler errors, it's most likely because the first step failed to correctly generate the C# wrapper.
 
-The fix for these issues is to use the `Metadata.xml` file and implement transforms that tell the binder how to generate the C# code for trouble areas. This file uses the [XPath](https://www.w3.org/TR/xpath/) syntax, which means if you're like me, it's yet another thing you'll have to go get familiar with just to fix these errors.
+The fix for these issues is to use the `Metadata.xml` file and implement transforms that tell the binder how to generate the C# code for trouble areas. This file uses the [XPath](https://www.w3.org/TR/xpath/) syntax which means, if you're like me, it's yet another thing you'll have to go get familiar with just to fix these errors.
 
 The first error was an illegal naming convention in C#, where a class member cannot be the same name as its owning class.
 
@@ -444,7 +446,7 @@ Googling these symbols tells us that they reside in the `AudioToolbox` and `Medi
 # Linking Frameworks
 Back in the bindings project, I didn't see an obvious way to say "Include these frameworks." You can't add them as Native References, and there are no linker options at the Project level. The best I could find was the "Frameworks" field in the Property Page for the Native Reference of `libAudioFetch.a`. 
 
-Comparing this with the documentation for that non-existent `linkwith` file, it seemed clear that this was where you could put dependency frameworks. Other's online questions / answers also lead me to believe this would be where I'd add it.
+Comparing this with the documentation for that non-existent `linkwith` file, it seemed clear that this was where you could put dependency frameworks. Other online questions / answers also lead me to believe this would be where I'd add it.
 
 I had questions around how to specify the frameworks, but the answer I finally found was "A space delimitted list of frameworks without the extension") 
 
@@ -492,7 +494,7 @@ This is straight forward enough, but it would cause the above warning to show an
 This is my least favorite option, since we'd have to create four project configurations (x86 Debug, x86 Release, Arm Debug, Arm Release).
 
 3. Create a "fat lib".
-A "fat lib" (as I learned making these bindings) is a single library with both architectures within it. Because they exist as "slices" within the library, there won't be any warnings when building because the linker will only grab the "slice" for the active architecture. The only downside to this is a double-sized static library, since the single library now contains both architectures. This ends up ok being though, because the final executable only links in the architecture it's compatible with, ensureing our final app size isn't bloated with unused code.
+A "fat lib" (as I learned making these bindings) is a single library with both architectures within it. Because they exist as "slices" within the library, there won't be any warnings when building because the linker will only grab the "slice" for the active architecture. The only downside to this is a double-sized static library since the single library now contains both architectures. This ends up ok being though, because the final executable only links in the architecture it's compatible with, ensuring our final app size isn't bloated with unused code.
 
 # Creating a fat lib
 When I started researching how to make a fat lib, I ran into several methods and preferred approaches. I ended up finding a simple `Makefile` in, of all places, that out-dated [iOS Bindings Walkthrough.](https://docs.microsoft.com/en-us/xamarin/ios/platform/binding-objective-c/walkthrough?tabs=macos)
